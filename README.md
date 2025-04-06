@@ -78,7 +78,7 @@ cd /home/ubuntu
 ```
 
 ```sh
-git clone https://github.com/saasscaleup/nodejs-ssl-server.git
+git clone https://github.com/merahul947/vya.git
 ```
 
 ### 5. Run node app.js  (Make sure everything working)
