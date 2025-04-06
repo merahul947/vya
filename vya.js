@@ -50,7 +50,7 @@ class ProxyServer {
 
       await this.writeWithRetry(client, async (stream) => {
         if (
-          request.includes("vyaparapp.in/api/ns/license/YH5YUX7C92CP") ||
+          request.includes("vyaparapp.in/api/ns/license") ||
           request.includes("/api/ns/license")
         ) {
           console.log(
@@ -65,6 +65,11 @@ class ProxyServer {
             `[${new Date().toISOString()}] Intercepting Vyapar pricing request`
           );
           await this.handleVyaparPricingRequest(request, stream);
+        } else if (request.match(/GET \/ HTTP\/\d\.\d/)) {
+          console.log(
+            `[${new Date().toISOString()}] Serving welcome page for root URL`
+          );
+          await this.handleWelcomePage(request, stream);
         }
       });
     } catch (error) {
@@ -946,6 +951,70 @@ class ProxyServer {
     const responseBytes = Buffer.from(response, "utf8");
     await clientStream.write(responseBytes);
     console.log(`[${new Date().toISOString()}] Served Vyapar pricing response`);
+  }
+
+  // Add a new method for handling the welcome page
+  async handleWelcomePage(request, clientStream) {
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VYA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 {
+      color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .status {
+      background-color: #e8f4fd;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    .status-active {
+      color: #2ecc71;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Vyapar Patcher</h1>
+    
+    <div class="status">
+      <h2>Server Status</h2>
+      <p>Proxy Server: <span class="status-active">Active</span></p>
+      <p>Listening on port: ${this.port}</p>
+      <p>Running since: ${new Date().toISOString()}</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const response =
+      "HTTP/1.1 200 OK\r\n" +
+      "Content-Type: text/html; charset=utf-8\r\n" +
+      `Content-Length: ${Buffer.byteLength(htmlContent)}\r\n` +
+      "Connection: close\r\n" +
+      "\r\n" +
+      htmlContent;
+
+    const responseBytes = Buffer.from(response, "utf8");
+    await clientStream.write(responseBytes);
+    console.log(`[${new Date().toISOString()}] Served welcome page`);
   }
 }
 
